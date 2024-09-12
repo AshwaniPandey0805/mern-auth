@@ -1,28 +1,28 @@
-import React, { useState } from "react";
-
-
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom"
 
 function SignUp() {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({
-    usernameError: '',
-    emailError: '',
-    passwordError: '',
+    usernameError: "",
+    emailError: "",
+    passwordError: "",
   });
-  const [ loading, setLoading ] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [serverResponse, setServerResponse] = useState(null);
+  const navigate = useNavigate();
 
   const handleFormData = (e) => {
     const { id, value } = e.target;
 
     switch (id) {
-      case 'username':
+      case "username":
         validateUsername(value);
         break;
-      case 'email':
+      case "email":
         validateEmail(value);
         break;
-      case 'password':
+      case "password":
         validatePassword(value);
         break;
       default:
@@ -34,21 +34,19 @@ function SignUp() {
       [id]: value,
     });
   };
-
-  console.log(formData);
   const validateUsername = (username) => {
-    if (username.trim() === '') {
+    if (username.trim() === "") {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        usernameError: 'Username should not be empty',
+        usernameError: "Username should not be empty",
       }));
     } else if (!/^[a-zA-Z0-9]+$/.test(username)) {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        usernameError: 'Username must be alphanumeric',
+        usernameError: "Username must be alphanumeric",
       }));
     } else {
-      setErrors((prevErrors) => ({ ...prevErrors, usernameError: '' }));
+      setErrors((prevErrors) => ({ ...prevErrors, usernameError: "" }));
     }
   };
 
@@ -57,10 +55,10 @@ function SignUp() {
     if (!emailRegex.test(email)) {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        emailError: 'Please enter a valid email',
+        emailError: "Please enter a valid email",
       }));
     } else {
-      setErrors((prevErrors) => ({ ...prevErrors, emailError: '' }));
+      setErrors((prevErrors) => ({ ...prevErrors, emailError: "" }));
     }
   };
 
@@ -71,39 +69,43 @@ function SignUp() {
       setErrors((prevErrors) => ({
         ...prevErrors,
         passwordError:
-          'Password must be at least 8 characters long, with uppercase, lowercase, number, and special character',
+          "Password must be at least 8 characters long, with uppercase, lowercase, number, and special character",
       }));
     } else {
-      setErrors((prevErrors) => ({ ...prevErrors, passwordError: '' }));
+      setErrors((prevErrors) => ({ ...prevErrors, passwordError: "" }));
     }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
+
     // Simple form validation before submission
     if (errors.usernameError || errors.emailError || errors.passwordError) {
-      alert('Please fix the errors before submitting.');
+      alert("Please fix the errors before submitting.");
       return;
     }
 
     try {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:3000/auth/user/sign-up', {
-        method: 'POST',
+      const res = await fetch("http://127.0.0.1:3000/auth/user/sign-up", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
       const data = await res.json();
       setLoading(false);
       setServerResponse(data);
-      console.log("sdsds" , data);
+      console.log(data);
+      console.log('serverResponse',serverResponse)
+      if(data.success == true){
+        navigate('/sign-in')
+      }
     } catch (error) {
-
-      console.error('Error during sign-up:', error);
-      setServerResponse({ error: 'Sign-up failed. Please try again later.' });
+      setLoading(false);
+      console.error("Error during sign-up:", error);
+      setServerResponse({ error: "Sign-up failed. Please try again later." });
     }
   };
 
@@ -146,7 +148,7 @@ function SignUp() {
           type="submit"
           className="bg-slate-600 text-white font-semibold uppercase rounded-lg p-3 hover:bg-slate-500"
         >
-          { loading ? 'Loading...' : 'Sign Up' }
+          {loading ? "Loading..." : "Sign Up"}
         </button>
       </form>
 
@@ -162,9 +164,11 @@ function SignUp() {
 
       <div className="flex flex-row justify-between p-2 my-1">
         <p>Already have an account?</p>
-        <span className="text-blue-400 uppercase font-semibold mr-2">
+        <Link to='/sign-in' >
+          <span className="text-blue-400 uppercase font-semibold mr-2">
           Sign In
-        </span>
+          </span>
+        </Link>
       </div>
     </div>
   );

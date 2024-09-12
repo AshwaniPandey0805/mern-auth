@@ -6,19 +6,33 @@ import bcrypt from "bcrypt";
 import bc from "bcrypt"
 dotenv.config();
 
-export const signUp = async  (req, res, next ) => {
+export const signUp = async (req, res, next) => {
     const { username, email, password } = req.body;
-    const hashPassword = bcrypt.hashSync(password, 10);
-    const newUser = new User({ username, email, password : hashPassword });
+
     try {
+        // Check if user already exists
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return next(errorHandler(false, 300, 'User already exists'));
+        }
+
+        // Hash the password asynchronously
+        const hashPassword = await bcrypt.hash(password, 10);
+
+        // Create a new user
+        const newUser = new User({ username, email, password: hashPassword });
         await newUser.save();
-        res.status(201).json({
-            message : 'User created successfully'
-        });    
+
+        // Respond with success
+        return res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+        });
     } catch (error) {
-        next(errorHandler(300, error.message));
+        // Handle any errors
+        return next(errorHandler(false, 500, error.message));
     }
-}
+};
 
 export const signIn = async  ( req, res, next) => {
     const { email, password } = req.body;
@@ -29,11 +43,11 @@ export const signIn = async  ( req, res, next) => {
     try {
         const validateUser = await  User.findOne({ email });
         if(!validateUser){
-            return next(errorHandler(401, "User not found"));
+            return next(errorHandler(false ,401, "User not found"));
         }
         const validatePassword = bcrypt.compareSync(password, validateUser.password);
         if(!validatePassword){
-            return next(errorHandler(401, 'wrong credentials'));
+            return next(errorHandler(false ,401, 'wrong credentials'));
         }
         const token = jwt.sign({ id : validateUser._id }, process.env.SECRET);
         const { password : hashedPassword, ...rest  } = validateUser._doc;
@@ -43,7 +57,11 @@ export const signIn = async  ( req, res, next) => {
             expires : tokenExpiry
         })
         .status(200)
-        .json(rest);
+        .json({
+            data : rest,
+            'success' : true,
+            'message' : 'User Login successFully'
+        });
     } catch (error) {
         next(error);
     }
