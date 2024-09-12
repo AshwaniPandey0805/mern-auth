@@ -82,8 +82,7 @@ function SignIn() {
       const response = await res.json();
       setLoading(false);
       setServerResponse(response);
-      if(serverResponse.success == true){
-        console.log(serverResponse.data);
+      if(response.success == true){
         navigate('/')
       }
       console.log("sdsds", response);
